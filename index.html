@@ -1,12 +1,42 @@
-
-const express = require("express");
-const path = require("path");
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.static(path.join(__dirname, "public")));
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`SMRC Calculator berjalan pada port ${PORT}`);
-});
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator SMRC | Saiful Mujani Research and Consulting</title>
+<style>
+:root{--navy:#10243e;--gold:#d8b46e;--ink:#24364a;--muted:#718096}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(135deg,#e8edf5,#f8fafc);font-family:Segoe UI,Arial,sans-serif;display:grid;place-items:center;padding:20px}.app{width:min(470px,100%);background:white;border-radius:22px;overflow:hidden;box-shadow:0 20px 55px #10243e30}.brand{background:linear-gradient(130deg,#10243e,#244464);padding:26px;text-align:center;color:white}.brand strong{display:block;color:var(--gold);font-size:39px;letter-spacing:5px}.brand small{display:block;font-size:11px;letter-spacing:1px;margin-top:7px}.brand p{color:var(--gold);letter-spacing:2px;font-size:12px;margin:18px 0 0}.main{padding:20px}.screen{background:#f3f6fa;border:1px solid #e0e7ef;border-radius:13px;padding:13px;margin-bottom:15px}.screen label{display:block;color:var(--muted);font-size:11px;margin-bottom:8px}#display{width:100%;border:0;outline:0;background:transparent;color:var(--navy);font-size:27px;text-align:right}.keys{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}button{min-height:50px;border:0;border-radius:10px;background:#eef1f6;color:var(--ink);font-size:16px;font-weight:600;cursor:pointer}button:hover{filter:brightness(.94)}button:active{transform:scale(.97)}.op{background:#dce8f5}.fn{background:#e7ebf2;font-size:13px}.clear{background:#fbe0de;color:#a33333}.equal{background:var(--gold);color:var(--navy);font-size:21px}.history{margin-top:18px;border-top:1px solid #e6eaf0;padding-top:12px}.history-head{display:flex;align-items:center;justify-content:space-between}.history h3{font-size:14px;margin:0;color:var(--navy)}.small{min-height:29px;padding:0 12px;font-size:12px}#historyList{max-height:150px;overflow:auto;margin-top:9px}.entry{background:#f5f7fa;border-radius:8px;padding:9px;margin-bottom:6px;text-align:right;font-size:13px;cursor:pointer}.hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5}.footer{text-align:center;background:#fafbfd;color:#8792a0;font-size:11px;padding:13px}@media(max-width:420px){.main{padding:13px}.keys{gap:6px}button{min-height:45px;font-size:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="brand"><strong>SMRC</strong><small>SAIFUL MUJANI RESEARCH AND CONSULTING</small><p>SCIENTIFIC CALCULATOR</p></header>
+<main class="main">
+<div class="screen"><label for="display">EKSPRESI MATEMATIKA</label><input id="display" autocomplete="off" spellcheck="false" placeholder="0" aria-label="Ekspresi matematika"></div>
+<div class="keys">
+<button class="clear" onclick="clearDisplay()">AC</button><button onclick="backspace()">⌫</button><button onclick="insert('(')">(</button><button onclick="insert(')')">)</button><button class="op" onclick="insert('/')">÷</button>
+<button class="fn" onclick="insert('sin(')">sin</button><button class="fn" onclick="insert('cos(')">cos</button><button class="fn" onclick="insert('tan(')">tan</button><button class="fn" onclick="insert('sqrt(')">√</button><button class="op" onclick="insert('*')">×</button>
+<button class="fn" onclick="insert('log(')">log</button><button class="fn" onclick="insert('ln(')">ln</button><button class="fn" onclick="insert('^2')">x²</button><button class="fn" onclick="insert('^')">xʸ</button><button class="op" onclick="insert('-')">−</button>
+<button onclick="insert('7')">7</button><button onclick="insert('8')">8</button><button onclick="insert('9')">9</button><button class="fn" onclick="insert('!')">n!</button><button class="op" onclick="insert('+')">+</button>
+<button onclick="insert('4')">4</button><button onclick="insert('5')">5</button><button onclick="insert('6')">6</button><button onclick="insert('pi')">π</button><button onclick="insert('e')">e</button>
+<button onclick="insert('1')">1</button><button onclick="insert('2')">2</button><button onclick="insert('3')">3</button><button onclick="insert('%')">%</button><button onclick="negate()">±</button>
+<button onclick="insert('0')">0</button><button onclick="insert('.')">.</button><button class="equal" style="grid-column:span 3" onclick="calculate()">=</button>
+</div>
+<section class="history"><div class="history-head"><h3>Riwayat Perhitungan</h3><button class="small" onclick="clearHistory()">Hapus</button></div><div id="historyList"></div></section>
+<div class="hint">Trigonometri dalam derajat. Contoh: 2500000*15% = 375000. Riwayat tersimpan selama halaman terbuka.</div>
+</main><footer class="footer">SMRC © 2026 · Research & Analytics Tools</footer>
+</div>
+<script>
+const display=document.getElementById('display'),historyList=document.getElementById('historyList');let history=[];
+function insert(value){display.setRangeText(value,display.selectionStart,display.selectionEnd,'end');display.focus()}
+function clearDisplay(){display.value='';display.focus()}
+function backspace(){let a=display.selectionStart,b=display.selectionEnd;if(a===b&&a>0)a--;display.setRangeText('',a,b,'end');display.focus()}
+function negate(){const x=display.value.trim();display.value=x?'-('+x+')':'-';display.focus()}
+function evaluate(expression){let pos=0;const s=expression.replace(/\s+/g,'');if(!s||s.length>500)throw Error('Ekspresi kosong atau terlalu panjang');function match(t){if(s.startsWith(t,pos)){pos+=t.length;return true}return false}function number(){const m=s.slice(pos).match(/^(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/);if(!m)throw Error('Angka tidak valid');pos+=m[0].length;return Number(m[0])}function factorial(n){if(!Number.isInteger(n)||n<0||n>170)throw Error('Faktorial hanya untuk bilangan bulat 0–170');let r=1;for(let i=2;i<=n;i++)r*=i;return r}function primary(){if(match('(')){let x=addSub();if(!match(')'))throw Error('Kurung belum ditutup');return x}if(match('pi'))return Math.PI;if(s[pos]==='e'&&!/[a-z]/i.test(s[pos+1]||'')){pos++;return Math.E}for(const fn of ['sqrt','sin','cos','tan','log','ln']){if(match(fn+'(')){const x=addSub();if(!match(')'))throw Error('Kurung belum ditutup');const rad=x*Math.PI/180;switch(fn){case 'sqrt':return Math.sqrt(x);case 'sin':return Math.sin(rad);case 'cos':return Math.cos(rad);case 'tan':if(Math.abs(Math.cos(rad))<1e-12)throw Error('Tangen tidak terdefinisi');return Math.tan(rad);case 'log':return Math.log10(x);case 'ln':return Math.log(x)}}}return number()}function postfix(){let x=primary();while(true){if(match('!'))x=factorial(x);else if(match('%'))x/=100;else break}return x}function power(){const x=postfix();return match('^')?Math.pow(x,unary()):x}function unary(){if(match('+'))return unary();if(match('-'))return -unary();return power()}function multiply(){let x=unary();while(true){if(match('*'))x*=unary();else if(match('/'))x/=unary();else break}return x}function addSub(){let x=multiply();while(true){if(match('+'))x+=multiply();else if(match('-'))x-=multiply();else break}return x}const result=addSub();if(pos!==s.length)throw Error('Ekspresi tidak valid');if(!Number.isFinite(result))throw Error('Hasil tidak terdefinisi');return Number(result.toPrecision(12))}
+function calculate(){const expr=display.value.trim();if(!expr)return;try{const result=evaluate(expr);history.unshift({expr,result});history=history.slice(0,30);renderHistory();display.value=String(result)}catch(e){alert('Perhitungan gagal: '+e.message)}}
+function renderHistory(){historyList.replaceChildren();for(const item of history){const div=document.createElement('div');div.className='entry';div.textContent=item.expr+' = '+item.result;div.onclick=()=>{display.value=String(item.result);display.focus()};historyList.appendChild(div)}}
+function clearHistory(){history=[];renderHistory()}
+display.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();calculate()}});
+</script>
+</body>
+</html>
